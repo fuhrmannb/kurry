@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "DuckFood",
+  "name": "A duck app that manages all your food!",
   "icons": [
     {
       "src": "favicon.ico",
