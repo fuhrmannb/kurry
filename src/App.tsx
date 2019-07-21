@@ -1,54 +1,59 @@
-import React from 'react'
+import React from "react"
 
-import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom"
 
-import AppBar from '@material-ui/core/AppBar'
-import CssBaseline from '@material-ui/core/CssBaseline'
-import Divider from '@material-ui/core/Divider'
-import Drawer from '@material-ui/core/Drawer'
-import Hidden from '@material-ui/core/Hidden'
-import IconButton from '@material-ui/core/IconButton'
-import InboxIcon from '@material-ui/icons/MoveToInbox'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemText from '@material-ui/core/ListItemText'
-import MenuIcon from '@material-ui/icons/Menu'
-import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
-import { makeStyles, useTheme, Theme, createStyles } from '@material-ui/core/styles'
+import AppBar from "@material-ui/core/AppBar"
+import CssBaseline from "@material-ui/core/CssBaseline"
+import Divider from "@material-ui/core/Divider"
+import Drawer from "@material-ui/core/Drawer"
+import Hidden from "@material-ui/core/Hidden"
+import IconButton from "@material-ui/core/IconButton"
+import InboxIcon from "@material-ui/icons/MoveToInbox"
+import List from "@material-ui/core/List"
+import ListItem from "@material-ui/core/ListItem"
+import ListItemIcon from "@material-ui/core/ListItemIcon"
+import ListItemText from "@material-ui/core/ListItemText"
+import MenuIcon from "@material-ui/icons/Menu"
+import Toolbar from "@material-ui/core/Toolbar"
+import Typography from "@material-ui/core/Typography"
+import {
+  makeStyles,
+  useTheme,
+  Theme,
+  createStyles,
+} from "@material-ui/core/styles"
 
-import Home from './Home';
-import Recipe from './Recipe/Recipe';
-import About from './About';
+import Home from "./Home"
+import Recipe from "./Recipe/Recipe"
+import About from "./About"
 
 const drawerWidth = 240
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      display: 'flex',
+      display: "flex",
     },
     drawer: {
-      [theme.breakpoints.up('sm')]: {
+      [theme.breakpoints.up("sm")]: {
         width: drawerWidth,
         flexShrink: 0,
       },
     },
     appBar: {
       marginLeft: drawerWidth,
-      [theme.breakpoints.up('sm')]: {
+      [theme.breakpoints.up("sm")]: {
         width: `calc(100% - ${drawerWidth}px)`,
       },
     },
     menuButton: {
       marginRight: theme.spacing(2),
-      [theme.breakpoints.up('sm')]: {
-        display: 'none',
+      [theme.breakpoints.up("sm")]: {
+        display: "none",
       },
     },
     toolbar: {
-      fontSize: '2rem',
+      fontSize: "2rem",
       marginTop: 10,
       marginLeft: 25,
       marginBottom: -10,
@@ -61,7 +66,7 @@ const useStyles = makeStyles((theme: Theme) =>
       flexGrow: 1,
       padding: theme.spacing(3),
     },
-  }),
+  })
 )
 
 export default function App() {
@@ -81,14 +86,18 @@ export default function App() {
       <Divider />
       <List>
         <ListItem button component={Link} to="/recipe" key="recipe">
-          <ListItemIcon><InboxIcon /></ListItemIcon>
+          <ListItemIcon>
+            <InboxIcon />
+          </ListItemIcon>
           <ListItemText primary="Recipe" />
         </ListItem>
       </List>
       <Divider />
       <List>
         <ListItem button component={Link} to="/about" key="about">
-          <ListItemIcon><InboxIcon /></ListItemIcon>
+          <ListItemIcon>
+            <InboxIcon />
+          </ListItemIcon>
           <ListItemText primary="About" />
         </ListItem>
       </List>
@@ -120,7 +129,7 @@ export default function App() {
           <Hidden smUp implementation="css">
             <Drawer
               variant="temporary"
-              anchor={theme.direction === 'rtl' ? 'right' : 'left'}
+              anchor={theme.direction === "rtl" ? "right" : "left"}
               open={mobileOpen}
               onClose={handleDrawerToggle}
               classes={{
