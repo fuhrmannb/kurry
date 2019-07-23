@@ -6,9 +6,6 @@ import GridList from "@material-ui/core/GridList"
 import GridListTile from "@material-ui/core/GridListTile"
 import GridListTileBar from "@material-ui/core/GridListTileBar"
 import Typography from "@material-ui/core/Typography"
-import Stepper from "@material-ui/core/Stepper"
-import Step from "@material-ui/core/Step"
-import StepContent from "@material-ui/core/StepContent"
 import useMediaQuery from "@material-ui/core/useMediaQuery"
 import {
   makeStyles,
@@ -16,11 +13,17 @@ import {
   createStyles,
   useTheme,
 } from "@material-ui/core/styles"
-import StepLabel from "@material-ui/core/StepLabel"
+import Chip from "@material-ui/core/Chip"
+import ListItem from "@material-ui/core/ListItem"
+import List from "@material-ui/core/List"
+import ListItemText from "@material-ui/core/ListItemText"
+import ListItemIcon from "@material-ui/core/ListItemIcon"
+import Paper from "@material-ui/core/Paper"
 
 const data = {
-  name: "Quiche Lorraine",
+  title: "Quiche Lorraine",
   img: "quiche.jpeg",
+  tags: ["entrée", "omnivore", "lorraine"],
   bakeTime: 45,
   servings: 4,
   ingredients: [
@@ -57,7 +60,10 @@ const data = {
     },
   ],
   steps: [
-    "Préchauffer le four à 180°C (thermostat 6).",
+    `Préchauffer le four à 180°C (thermostat 6).
+    sdfdsf sdfdsf sdf dsf dsfdsfds fsdf dsfqd fqd fqsdfqdf qdsf
+    sdfdsf qsdf qsdf qds fqdsf qsdfsdqf qdsfhgfdjh gjhgj
+    sdfdsf gdfgs gsfdg sfdgsfd h`,
     "Etaler la pâte dans un moule, la piquer à la fourchette. Parsemer de copeaux de beurre.",
     "Faire rissoler les lardons à la poêle.",
     "Battre les oeufs, la crème fraîche et le lait.",
@@ -81,8 +87,18 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     gridList: {
       flexWrap: "nowrap",
+      margin: theme.spacing(5),
       // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
       transform: "translateZ(0)",
+    },
+    tags: {
+      margin: theme.spacing(2),
+      display: "flex",
+      justifyContent: "center",
+      flexWrap: "wrap",
+    },
+    tag: {
+      margin: theme.spacing(0.2),
     },
     tile: {
       width: 10,
@@ -91,7 +107,17 @@ const useStyles = makeStyles((theme: Theme) =>
       background:
         "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)",
       height: 55,
-      minWidth: 200,
+    },
+    stepNumber: {
+      marginLeft: theme.spacing(-0.6),
+    },
+    stepContent: {
+      marginLeft: theme.spacing(-3),
+      marginTop: theme.spacing(1),
+      marginBottom: theme.spacing(-1),
+    },
+    note: {
+      padding: theme.spacing(3, 2),
     },
   })
 )
@@ -101,24 +127,34 @@ export default function RecipeViewer(
 ) {
   const classes = useStyles()
 
-  // FIXME: resize issue -> col seems to not be updated correctly
+  // FIXME: resize issue -> scroll bar on the whole page
   const theme = useTheme()
-  let col = 4.5
+  let col = 3.5
+  if (useMediaQuery(theme.breakpoints.up("sm"))) {
+    col = 4.5
+  }
   if (useMediaQuery(theme.breakpoints.up("md"))) {
-    col = 7.5
+    col = 5.5
   }
   if (useMediaQuery(theme.breakpoints.up("lg"))) {
-    col = 9.5
+    col = 8.5
   }
 
   return (
     <React.Fragment>
-      <Typography variant="h2" gutterBottom>
-        {data.name}
+      <Typography variant="h2" gutterBottom align="center">
+        {data.title}
       </Typography>
-      <Typography variant="h4" gutterBottom>
-        Ingredients:
-      </Typography>
+      <div className={classes.tags}>
+        {data.tags.map(tag => (
+          <Chip
+            size="small"
+            color="secondary"
+            className={classes.tag}
+            label={tag}
+          />
+        ))}
+      </div>
       <div className={classes.root}>
         <GridList className={classes.gridList} cols={col} spacing={8}>
           {data.ingredients.map(ingredient => (
@@ -133,15 +169,27 @@ export default function RecipeViewer(
           ))}
         </GridList>
       </div>
-      <Typography variant="h4" gutterBottom>
-        Steps:
-      </Typography>
-      <ol>
+      <List>
         {data.steps.map((step, index) => (
-          <li>{step}</li>
+          <ListItem alignItems="flex-start">
+            <ListItemIcon>
+              <Chip
+                className={classes.stepNumber}
+                size="small"
+                color="primary"
+                label={index + 1}
+              />
+            </ListItemIcon>
+            <ListItemText className={classes.stepContent} primary={step} />
+          </ListItem>
         ))}
-      </ol>
-      Note : <Typography>{data.notes}</Typography>
+      </List>
+      <Paper className={classes.note}>
+        <Typography variant="h5" component="h3">
+          Note
+        </Typography>
+        <Typography component="p">{data.notes}</Typography>
+      </Paper>
     </React.Fragment>
   )
 }
