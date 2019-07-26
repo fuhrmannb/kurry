@@ -1,6 +1,6 @@
 import React from "react"
 
-import { RouteComponentProps } from "react-router-dom"
+import { RouteComponentProps, Link } from "react-router-dom"
 
 import GridList from "@material-ui/core/GridList"
 import GridListTile from "@material-ui/core/GridListTile"
@@ -19,6 +19,8 @@ import List from "@material-ui/core/List"
 import ListItemText from "@material-ui/core/ListItemText"
 import ListItemIcon from "@material-ui/core/ListItemIcon"
 import Paper from "@material-ui/core/Paper"
+import { Fab } from "@material-ui/core"
+import EditIcon from "@material-ui/icons/Edit"
 
 const data = {
   title: "Quiche Lorraine",
@@ -119,6 +121,11 @@ const useStyles = makeStyles((theme: Theme) =>
     note: {
       padding: theme.spacing(3, 2),
     },
+    fab: {
+      position: "fixed",
+      bottom: theme.spacing(2),
+      right: theme.spacing(2),
+    },
   })
 )
 
@@ -190,6 +197,16 @@ export default function RecipeViewer(
         </Typography>
         <Typography component="p">{data.notes}</Typography>
       </Paper>
+      <Fab
+        size="large"
+        color="secondary"
+        aria-label="New"
+        className={classes.fab}
+        component={Link}
+        to="/recipe/edit/test1"
+      >
+        <EditIcon />
+      </Fab>
     </React.Fragment>
   )
 }
