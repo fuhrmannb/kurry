@@ -24,7 +24,7 @@ import {
 } from "@material-ui/core/styles"
 
 import Home from "./Home"
-import Recipe from "./Recipe/Recipe"
+import Recipe from "recipe/web/Recipe"
 import About from "./About"
 
 const drawerWidth = 240

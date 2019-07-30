@@ -30,7 +30,10 @@ function RecipeItem() {
   return (
     <Grid item xs={12} md={6} lg={4} xl={3}>
       <Card>
-        <CardActionArea component={Link} to="/recipe/test1">
+        <CardActionArea
+          component={Link}
+          to="/recipe/dcbc9a7d-6085-400e-8c18-a926e3ac152d"
+        >
           <CardMedia className={classes.media} image="test.jpeg" title="Test" />
           <CardContent>
             <Grid container direction="row">
@@ -75,7 +78,7 @@ function RecipeItem() {
             size="small"
             color="primary"
             component={Link}
-            to="/recipe/edit/test1"
+            to="/recipe/edit/dcbc9a7d-6085-400e-8c18-a926e3ac152d"
           >
             Edit
           </Button>
@@ -83,7 +86,7 @@ function RecipeItem() {
             size="small"
             color="primary"
             component={Link}
-            to="/recipe/delete/test1"
+            to="/recipe/delete/dcbc9a7d-6085-400e-8c18-a926e3ac152d"
           >
             Delete
           </Button>
