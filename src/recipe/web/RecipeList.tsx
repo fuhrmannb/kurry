@@ -15,6 +15,12 @@ import PersonIcon from "@material-ui/icons/Person"
 import Fab from "@material-ui/core/Fab"
 
 import { Link, RouteComponentProps } from "react-router-dom"
+import { RecipeState, newRecipe } from "recipe/recipeState"
+import { AppState } from "app/appState"
+import { connect } from "react-redux"
+import { v4 } from "uuid"
+import { deleteRecipe } from "recipe/recipeState"
+import RecipeDeleteDialog from "recipe/web/RecipeDeleteDialog"
 
 const itemStyles = makeStyles(
   createStyles({
@@ -24,22 +30,24 @@ const itemStyles = makeStyles(
   })
 )
 
-function RecipeItem() {
+function RecipeItem(props: { recipe: RecipeState; deleteRecipe: () => void }) {
   const classes = itemStyles()
+  const recipe = props.recipe
 
   return (
     <Grid item xs={12} md={6} lg={4} xl={3}>
       <Card>
-        <CardActionArea
-          component={Link}
-          to="/recipe/dcbc9a7d-6085-400e-8c18-a926e3ac152d"
-        >
-          <CardMedia className={classes.media} image="test.jpeg" title="Test" />
+        <CardActionArea component={Link} to={recipe.id}>
+          <CardMedia
+            className={classes.media}
+            image={recipe.img}
+            title="Test"
+          />
           <CardContent>
             <Grid container direction="row">
               <Grid item xs={8}>
                 <Typography gutterBottom variant="h5" component="h2">
-                  My Recipe
+                  {recipe.title}
                 </Typography>
               </Grid>
               <Grid item xs={4}>
@@ -50,7 +58,9 @@ function RecipeItem() {
                         <PersonIcon />
                       </Grid>
                       <Grid item>
-                        <Typography variant="body1">4</Typography>
+                        <Typography variant="body1">
+                          {recipe.servings}
+                        </Typography>
                       </Grid>
                     </Grid>
                   </Grid>
@@ -60,7 +70,7 @@ function RecipeItem() {
                         <AccessTimeIcon />
                       </Grid>
                       <Grid item>
-                        <Typography variant="body1">15"</Typography>
+                        <Typography variant="body1">{recipe.time}"</Typography>
                       </Grid>
                     </Grid>
                   </Grid>
@@ -68,8 +78,7 @@ function RecipeItem() {
               </Grid>
             </Grid>
             <Typography variant="body2" color="textSecondary" component="p">
-              Lizards are a widespread group of squamate reptiles, with over
-              6,000 species, ranging across all continents except Antarctica
+              // TODO: Description (Images des principaux ingrédients ?)
             </Typography>
           </CardContent>
         </CardActionArea>
@@ -78,15 +87,16 @@ function RecipeItem() {
             size="small"
             color="primary"
             component={Link}
-            to="/recipe/edit/dcbc9a7d-6085-400e-8c18-a926e3ac152d"
+            to={`edit/${recipe.id}`}
           >
             Edit
           </Button>
           <Button
             size="small"
             color="primary"
-            component={Link}
-            to="/recipe/delete/dcbc9a7d-6085-400e-8c18-a926e3ac152d"
+            onClick={() => {
+              props.deleteRecipe()
+            }}
           >
             Delete
           </Button>
@@ -106,25 +116,70 @@ const recipeStyles = makeStyles((theme: Theme) =>
   })
 )
 
-export default function RecipeList(props: RouteComponentProps) {
+function RecipeList(
+  props: ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps
+) {
   const classes = recipeStyles()
+  const addUUID = v4()
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [selectedReciped, setSelectedRecipe] = React.useState(newRecipe())
+
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false)
+    setSelectedRecipe(newRecipe())
+  }
+  const agreeDeleteDialog = () => {
+    props.deleteRecipe({
+      id: selectedReciped.id,
+    })
+    closeDeleteDialog()
+  }
 
   return (
     <React.Fragment>
       <Grid container spacing={3}>
-        <RecipeItem />
-        <RecipeItem />
-        <RecipeItem />
-        <RecipeItem />
+        {props.recipes.allIds.map(id => (
+          <RecipeItem
+            key={id}
+            recipe={props.recipes.byId[id]}
+            deleteRecipe={() => {
+              //props.deleteRecipe(id)
+              setSelectedRecipe(props.recipes.byId[id])
+              setDeleteDialogOpen(true)
+            }}
+          />
+        ))}
       </Grid>
       <Fab
         size="large"
         color="secondary"
         aria-label="New"
         className={classes.fab}
+        component={Link}
+        to={`edit/${addUUID}`}
       >
         <AddIcon />
       </Fab>
+      <RecipeDeleteDialog
+        open={deleteDialogOpen}
+        recipe={selectedReciped}
+        onAgree={agreeDeleteDialog}
+        onCancel={closeDeleteDialog}
+      />
     </React.Fragment>
   )
 }
+
+function mapStateToProps(state: AppState, router: RouteComponentProps) {
+  return {
+    recipes: state.recipes,
+  }
+}
+const mapDispatchToProps = {
+  deleteRecipe,
+}
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(RecipeList)

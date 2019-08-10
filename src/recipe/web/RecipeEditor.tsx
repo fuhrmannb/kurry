@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React from "react"
 import { RouteComponentProps } from "react-router-dom"
 import { makeStyles, Theme, createStyles } from "@material-ui/core/styles"
 import {
@@ -23,7 +23,7 @@ import PersonIcon from "@material-ui/icons/Person"
 import DragHandleIcon from "@material-ui/icons/DragHandle"
 import { SortableElement, SortableContainer } from "react-sortable-hoc"
 import { AppState } from "app/appState"
-import { IngredientState, updateRecipe } from "recipe/recipeState"
+import { RecipeState, IngredientState, postRecipe, newRecipe, newIngredient } from "recipe/recipeState"
 import { connect } from "react-redux"
 import { Formik, Form, FastField, FieldArray, Field } from "formik"
 import { TextField, Select } from "formik-material-ui"
@@ -243,14 +243,19 @@ function RecipeEditor(
   props: ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps
 ) {
   const classes = useStyles()
+  const recipe = props.recipe
+
+  const onSubmit = (values: RecipeState) => {
+    props.postRecipe({
+      recipe: values,
+    })
+    props.router.history.push(`../${values.id}`)
+  }
 
   return (
     <Formik
-      initialValues={props.recipe}
-      onSubmit={() => {
-        // TODO
-        alert("TODO")
-      }}
+      initialValues={recipe}
+      onSubmit={onSubmit}
       render={({ values }) => (
         <Form>
           <Grid container>
@@ -260,6 +265,7 @@ function RecipeEditor(
                 label="Title"
                 component={TextField}
                 fullWidth
+                required
               />
             </Grid>
             <Grid item xs={6} sm={5} md={4} lg={3} xl={2}>
@@ -328,7 +334,7 @@ function RecipeEditor(
                   variant="contained"
                   color="secondary"
                   className={classes.block}
-                  onClick={() => arrayHelpers.push("")}
+                  onClick={() => arrayHelpers.push(newIngredient())}
                 >
                   Add ingredient
                 </Button>
@@ -385,14 +391,16 @@ function RecipeEditor(
 
 function mapStateToProps(
   state: AppState,
-  routerProps: RouteComponentProps<{ id: string }>
+  router: RouteComponentProps<{ id: string }>
 ) {
+  const id = router.match.params.id
   return {
-    recipe: state.recipes.byId[routerProps.match.params.id],
+    recipe: state.recipes.byId[id] || newRecipe(id),
+    router: router,
   }
 }
 const mapDispatchToProps = {
-  updateRecipe,
+  postRecipe,
 }
 export default connect(
   mapStateToProps,

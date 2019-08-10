@@ -85,16 +85,16 @@ export default function App() {
       </div>
       <Divider />
       <List>
-        <ListItem button component={Link} to="/recipe" key="recipe">
+        <ListItem button component={Link} to="/recipe/" key="recipe">
           <ListItemIcon>
             <InboxIcon />
           </ListItemIcon>
-          <ListItemText primary="Recipe" />
+          <ListItemText primary="Recipes" />
         </ListItem>
       </List>
       <Divider />
       <List>
-        <ListItem button component={Link} to="/about" key="about">
+        <ListItem button component={Link} to="/about/" key="about">
           <ListItemIcon>
             <InboxIcon />
           </ListItemIcon>

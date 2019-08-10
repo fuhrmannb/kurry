@@ -21,62 +21,9 @@ import ListItemIcon from "@material-ui/core/ListItemIcon"
 import Paper from "@material-ui/core/Paper"
 import { Fab } from "@material-ui/core"
 import EditIcon from "@material-ui/icons/Edit"
-
-const data = {
-  title: "Quiche Lorraine",
-  img: "quiche.jpeg",
-  tags: ["entrée", "omnivore", "lorraine"],
-  bakeTime: 45,
-  servings: 4,
-  ingredients: [
-    {
-      img: "/test/creme.jpeg",
-      title: "Crème",
-      quantity: "20",
-      unit: "cL",
-    },
-    {
-      img: "/test/lardons.jpeg",
-      title: "Lardons",
-      quantity: "200",
-      unit: "g",
-    },
-    {
-      img: "/test/beurre.jpeg",
-      title: "Beurre",
-      quantity: "30",
-      unit: "g",
-    },
-    {
-      img: "/test/oeufs.jpeg",
-      title: "Oeufs",
-      quantity: "3",
-    },
-    {
-      img: "/test/sel.jpeg",
-      title: "Sel",
-    },
-    {
-      img: "/test/poivre.jpeg",
-      title: "Poivre",
-    },
-  ],
-  steps: [
-    `Préchauffer le four à 180°C (thermostat 6).
-    sdfdsf sdfdsf sdf dsf dsfdsfds fsdf dsfqd fqd fqsdfqdf qdsf
-    sdfdsf qsdf qsdf qds fqdsf qsdfsdqf qdsfhgfdjh gjhgj
-    sdfdsf gdfgs gsfdg sfdgsfd h`,
-    "Etaler la pâte dans un moule, la piquer à la fourchette. Parsemer de copeaux de beurre.",
-    "Faire rissoler les lardons à la poêle.",
-    "Battre les oeufs, la crème fraîche et le lait.",
-    "Ajouter les lardons.",
-    "Assaisonner de sel, de poivre et de muscade.",
-    "Verser sur la pâte.",
-    "Cuire 45 à 50 min.",
-    "C'est prêt, déguster!",
-  ],
-  notes: "Servir avec une bonne salade :)",
-}
+import { AppState } from "app/appState"
+import { connect } from "react-redux"
+import { deleteRecipe, newRecipe } from "recipe/recipeState"
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -129,10 +76,11 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 )
 
-export default function RecipeViewer(
-  props: RouteComponentProps<{ id: string }>
+function RecipeViewer(
+  props: ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps
 ) {
   const classes = useStyles()
+  const recipe = props.recipe
 
   // FIXME: resize issue -> scroll bar on the whole page
   const theme = useTheme()
@@ -150,35 +98,36 @@ export default function RecipeViewer(
   return (
     <React.Fragment>
       <Typography variant="h2" gutterBottom align="center">
-        {data.title}
+        {recipe.title}
       </Typography>
       <div className={classes.tags}>
-        {data.tags.map(tag => (
+        {recipe.tags.map(tag => (
           <Chip
             size="small"
             color="secondary"
             className={classes.tag}
             label={tag}
+            key={tag}
           />
         ))}
       </div>
       <div className={classes.root}>
         <GridList className={classes.gridList} cols={col} spacing={8}>
-          {data.ingredients.map(ingredient => (
+          {recipe.ingredients.map(ingredient => (
             <GridListTile key={ingredient.img}>
-              <img src={ingredient.img} alt={ingredient.title} />
+              <img src={ingredient.img} alt={ingredient.name} />
               <GridListTileBar
                 className={classes.tileBar}
-                title={ingredient.title}
-                subtitle={`${ingredient.quantity} ${ingredient.unit}`}
+                title={ingredient.name}
+                subtitle={`${ingredient.amount} ${ingredient.unit}`}
               />
             </GridListTile>
           ))}
         </GridList>
       </div>
       <List>
-        {data.steps.map((step, index) => (
-          <ListItem alignItems="flex-start">
+        {recipe.steps.map((step, index) => (
+          <ListItem alignItems="flex-start" key={`step${index}`}>
             <ListItemIcon>
               <Chip
                 className={classes.stepNumber}
@@ -195,7 +144,7 @@ export default function RecipeViewer(
         <Typography variant="h5" component="h3">
           Note
         </Typography>
-        <Typography component="p">{data.notes}</Typography>
+        <Typography component="p">{recipe.notes}</Typography>
       </Paper>
       <Fab
         size="large"
@@ -203,10 +152,27 @@ export default function RecipeViewer(
         aria-label="New"
         className={classes.fab}
         component={Link}
-        to="/recipe/edit/test1"
+        to={`edit/${recipe.id}`}
       >
         <EditIcon />
       </Fab>
     </React.Fragment>
   )
 }
+
+function mapStateToProps(
+  state: AppState,
+  router: RouteComponentProps<{ id: string }>
+) {
+  return {
+    recipe: state.recipes.byId[router.match.params.id] || newRecipe(),
+    router: router,
+  }
+}
+const mapDispatchToProps = {
+  deleteRecipe,
+}
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(RecipeViewer)

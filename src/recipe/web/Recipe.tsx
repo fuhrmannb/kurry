@@ -9,7 +9,7 @@ import RecipeList from "./RecipeList"
 export default function Recipe(props: RouteComponentProps) {
   return (
     <Switch>
-      <Route exact path={`${props.match.path}`} component={RecipeList} />
+      <Route exact path={`${props.match.path}/`} component={RecipeList} />
       <Route exact path={`${props.match.path}/:id`} component={RecipeViewer} />
       <Route
         exact
