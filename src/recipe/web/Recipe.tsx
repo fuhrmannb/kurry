@@ -2,9 +2,9 @@ import React from "react"
 
 import { RouteComponentProps, Route, Switch } from "react-router"
 
-import RecipeViewer from "./RecipeViewer"
-import RecipeEditor from "./RecipeEditor"
-import RecipeList from "./RecipeList"
+import RecipeViewer from "recipe/web/RecipeViewer"
+import RecipeEditor from "recipe/web/RecipeEditor"
+import RecipeList from "recipe/web/RecipeList"
 
 export default function Recipe(props: RouteComponentProps) {
   return (

@@ -23,9 +23,10 @@ import {
   createStyles,
 } from "@material-ui/core/styles"
 
-import Home from "./Home"
+import Home from "app/web/Home"
 import Recipe from "recipe/web/Recipe"
-import About from "./About"
+import About from "app/web/About"
+import AuthMenu from "app/web/AuthMenu"
 
 const drawerWidth = 240
 
@@ -122,6 +123,7 @@ export default function App() {
             <Typography variant="h6" noWrap>
               Welcome to DuckFood!
             </Typography>
+            <AuthMenu />
           </Toolbar>
         </AppBar>
         <nav className={classes.drawer} aria-label="Mailbox folders">

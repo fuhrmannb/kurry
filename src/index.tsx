@@ -2,19 +2,19 @@ import React from "react"
 import ReactDOM from "react-dom"
 
 import { Provider } from "react-redux"
-import { configureStore } from "redux-starter-kit";
 
-import * as serviceWorker from "./serviceWorker"
-import "./index.scss"
+import * as serviceWorker from "serviceWorker"
+import "index.scss"
 
-import App from "./app/web/App"
-import reducer from "./app/appState"
+import App from "app/web/App"
+import appStore, { rrfProps } from "app/appStore"
+import { ReactReduxFirebaseProvider } from "react-redux-firebase"
 
 ReactDOM.render(
-  <Provider store={configureStore({
-      reducer: reducer
-  })}>
-    <App />
+  <Provider store={appStore}>
+    <ReactReduxFirebaseProvider {...rrfProps}>
+      <App />
+    </ReactReduxFirebaseProvider>
   </Provider>,
   document.getElementById("root")
 )

@@ -23,7 +23,13 @@ import PersonIcon from "@material-ui/icons/Person"
 import DragHandleIcon from "@material-ui/icons/DragHandle"
 import { SortableElement, SortableContainer } from "react-sortable-hoc"
 import { AppState } from "app/appState"
-import { RecipeState, IngredientState, postRecipe, newRecipe, newIngredient } from "recipe/recipeState"
+import {
+  RecipeState,
+  IngredientState,
+  postRecipe,
+  newRecipe,
+  newIngredient,
+} from "recipe/recipeState"
 import { connect } from "react-redux"
 import { Formik, Form, FastField, FieldArray, Field } from "formik"
 import { TextField, Select } from "formik-material-ui"
