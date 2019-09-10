@@ -15,12 +15,18 @@ import PersonIcon from "@material-ui/icons/Person"
 import Fab from "@material-ui/core/Fab"
 
 import { Link, RouteComponentProps } from "react-router-dom"
-import { RecipeState, newRecipe } from "recipe/recipeState"
+import { Recipe, newRecipe } from "recipe/recipeModel"
 import { AppState } from "app/appState"
 import { connect } from "react-redux"
 import { v4 } from "uuid"
-import { deleteRecipe } from "recipe/recipeState"
 import RecipeDeleteDialog from "recipe/web/RecipeDeleteDialog"
+import { compose } from "redux"
+import {
+  firestoreConnect,
+  WithFirestoreProps,
+  isLoaded,
+  isEmpty,
+} from "react-redux-firebase"
 
 const itemStyles = makeStyles(
   createStyles({
@@ -30,7 +36,7 @@ const itemStyles = makeStyles(
   })
 )
 
-function RecipeItem(props: { recipe: RecipeState; deleteRecipe: () => void }) {
+function RecipeItem(props: { recipe: Recipe; deleteRecipe: () => void }) {
   const classes = itemStyles()
   const recipe = props.recipe
 
@@ -117,7 +123,7 @@ const recipeStyles = makeStyles((theme: Theme) =>
 )
 
 function RecipeList(
-  props: ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps
+  props: ReturnType<typeof mapStateToProps> & WithFirestoreProps
 ) {
   const classes = recipeStyles()
   const addUUID = v4()
@@ -130,27 +136,39 @@ function RecipeList(
     setSelectedRecipe(newRecipe())
   }
   const agreeDeleteDialog = () => {
-    props.deleteRecipe({
-      id: selectedReciped.id,
+    props.firestore.delete({
+      collection: "recipes",
+      doc: selectedReciped.id,
     })
     closeDeleteDialog()
   }
 
-  return (
-    <React.Fragment>
+  let recipeItems
+  // TODO: Better UI integration
+  if (!isLoaded(props.recipes)) {
+    recipeItems = <div>Loading...</div>
+  } else if (isEmpty(props.recipes)) {
+    recipeItems = <div>Recipe list is empty</div>
+  } else {
+    recipeItems = (
       <Grid container spacing={3}>
-        {props.recipes.allIds.map(id => (
+        {props.recipes.map(r => (
           <RecipeItem
-            key={id}
-            recipe={props.recipes.byId[id]}
+            key={r.id}
+            recipe={r}
             deleteRecipe={() => {
-              //props.deleteRecipe(id)
-              setSelectedRecipe(props.recipes.byId[id])
+              setSelectedRecipe(r)
               setDeleteDialogOpen(true)
             }}
           />
         ))}
       </Grid>
+    )
+  }
+
+  return (
+    <React.Fragment>
+      {recipeItems}
       <Fab
         size="large"
         color="secondary"
@@ -173,13 +191,14 @@ function RecipeList(
 
 function mapStateToProps(state: AppState, router: RouteComponentProps) {
   return {
-    recipes: state.recipes,
+    recipes: state.firestore.ordered.recipes as Recipe[],
   }
 }
-const mapDispatchToProps = {
-  deleteRecipe,
-}
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
+export default compose<React.ComponentType>(
+  firestoreConnect(() => [
+    {
+      collection: "recipes",
+    },
+  ]),
+  connect(mapStateToProps)
 )(RecipeList)

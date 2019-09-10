@@ -2,7 +2,7 @@ import React from "react"
 
 import Dialog from "@material-ui/core/Dialog"
 import DialogTitle from "@material-ui/core/DialogTitle"
-import { RecipeState } from "recipe/recipeState"
+import { Recipe } from "recipe/recipeModel"
 import DialogContentText from "@material-ui/core/DialogContentText"
 import DialogContent from "@material-ui/core/DialogContent"
 import DialogActions from "@material-ui/core/DialogActions"
@@ -10,7 +10,7 @@ import Button from "@material-ui/core/Button"
 
 export default function RecipeDeleteDialog(props: {
   open: boolean
-  recipe: RecipeState
+  recipe: Recipe
   onAgree: () => void
   onCancel: () => void
 }) {
@@ -23,7 +23,8 @@ export default function RecipeDeleteDialog(props: {
       <DialogTitle>Delete recipe "{props.recipe.title}"</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Are you sure to delete this recipe?<br />
+          Are you sure to delete this recipe?
+          <br />
           This action is irreversible.
         </DialogContentText>
       </DialogContent>

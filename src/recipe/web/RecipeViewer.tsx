@@ -23,7 +23,14 @@ import { Fab } from "@material-ui/core"
 import EditIcon from "@material-ui/icons/Edit"
 import { AppState } from "app/appState"
 import { connect } from "react-redux"
-import { deleteRecipe, newRecipe } from "recipe/recipeState"
+import { newRecipe } from "recipe/recipeModel"
+import {
+  firestoreConnect,
+  isLoaded,
+  isEmpty,
+  WithFirestoreProps,
+} from "react-redux-firebase"
+import { compose } from "redux"
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -77,10 +84,9 @@ const useStyles = makeStyles((theme: Theme) =>
 )
 
 function RecipeViewer(
-  props: ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps
+  props: ReturnType<typeof mapStateToProps> & WithFirestoreProps
 ) {
   const classes = useStyles()
-  const recipe = props.recipe
 
   // FIXME: resize issue -> scroll bar on the whole page
   const theme = useTheme()
@@ -94,6 +100,16 @@ function RecipeViewer(
   if (useMediaQuery(theme.breakpoints.up("lg"))) {
     col = 8.5
   }
+
+  // TODO: Better UI integration
+  if (props.isLoading) {
+    return <div>Loading...</div>
+  }
+  if (props.isEmpty) {
+    return <div>Error: no recipe with this ID</div>
+  }
+
+  const recipe = props.recipe
 
   return (
     <React.Fragment>
@@ -114,7 +130,7 @@ function RecipeViewer(
       <div className={classes.root}>
         <GridList className={classes.gridList} cols={col} spacing={8}>
           {recipe.ingredients.map(ingredient => (
-            <GridListTile key={ingredient.img}>
+            <GridListTile key={ingredient.name}>
               <img src={ingredient.img} alt={ingredient.name} />
               <GridListTileBar
                 className={classes.tileBar}
@@ -164,15 +180,38 @@ function mapStateToProps(
   state: AppState,
   router: RouteComponentProps<{ id: string }>
 ) {
+  const id = router.match.params.id
+  const recipes = state.firestore.data["recipes/" + id]
+
+  let recipe = newRecipe()
+  let loading = !isLoaded(recipes)
+  let empty = isEmpty(recipes)
+  if (!empty) {
+    recipe = recipes[id]
+  }
+
   return {
-    recipe: state.recipes.byId[router.match.params.id] || newRecipe(),
+    id: router.match.params.id,
+    isLoading: loading,
+    isEmpty: empty,
+    recipe: recipe,
     router: router,
   }
 }
-const mapDispatchToProps = {
-  deleteRecipe,
-}
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
+export default compose<React.ComponentType>(
+  connect(mapStateToProps),
+  firestoreConnect((props: ReturnType<typeof mapStateToProps>) => {
+    if (!props.id) {
+      return []
+    }
+    return [
+      {
+        collection: "recipes",
+        where: [["id", "==", props.id]],
+        // Need a dedicated variable for each edition
+        // Otherwise, use the same request as RecipeList
+        storeAs: "recipes/" + props.id,
+      },
+    ]
+  })
 )(RecipeViewer)

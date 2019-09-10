@@ -24,17 +24,23 @@ import DragHandleIcon from "@material-ui/icons/DragHandle"
 import { SortableElement, SortableContainer } from "react-sortable-hoc"
 import { AppState } from "app/appState"
 import {
-  RecipeState,
-  IngredientState,
-  postRecipe,
+  Recipe,
+  Ingredient,
   newRecipe,
   newIngredient,
-} from "recipe/recipeState"
+} from "recipe/recipeModel"
 import { connect } from "react-redux"
 import { Formik, Form, FastField, FieldArray, Field } from "formik"
 import { TextField, Select } from "formik-material-ui"
 import { ChipInput } from "material-ui-formik-components/ChipInput"
 import { SortableHandle } from "react-sortable-hoc"
+import {
+  firestoreConnect,
+  WithFirestoreProps,
+  isEmpty,
+  isLoaded,
+} from "react-redux-firebase"
+import { compose } from "redux"
 
 type ArrayRemoveFunction = (index: number) => void
 type ItemRemoveFunction = () => void
@@ -86,8 +92,8 @@ const IngredientHandle = SortableHandle(() => {
 
 const IngredientItem = SortableElement(
   (item: {
-    ingredient: IngredientState
-    index: number
+    ingredient: Ingredient
+    sortIndex: number
     remove: ItemRemoveFunction
   }) => {
     const classes = useStyles()
@@ -111,19 +117,20 @@ const IngredientItem = SortableElement(
           />
           <CardMedia
             className={classes.ingredientMedia}
+            //TODO: manage image upload with Firebase Storage
             image={item.ingredient.img}
             title={item.ingredient.name}
           />
           <CardContent>
             <FastField
-              name={`ingredients[${item.index}].name`}
+              name={`ingredients[${item.sortIndex}].name`}
               label="Name"
               component={TextField}
               fullWidth
               required
             />
             <FastField
-              name={`ingredients[${item.index}].amount`}
+              name={`ingredients[${item.sortIndex}].amount`}
               label="Amount"
               component={TextField}
               type="number"
@@ -132,18 +139,18 @@ const IngredientItem = SortableElement(
             <FormControl>
               <InputLabel
                 shrink
-                htmlFor={`ingredientUnitPlacehoder${item.index}`}
+                htmlFor={`ingredientUnitPlacehoder${item.sortIndex}`}
               >
                 Unit
               </InputLabel>
               <FastField
-                name={`ingredients[${item.index}].unit`}
+                name={`ingredients[${item.sortIndex}].unit`}
                 component={Select}
                 native
                 input={
                   <Input
                     name="unit"
-                    id={`ingredientUnitPlacehoder${item.index}`}
+                    id={`ingredientUnitPlacehoder${item.sortIndex}`}
                   />
                 }
               >
@@ -162,20 +169,23 @@ const IngredientItem = SortableElement(
 )
 
 const IngredientGrid = SortableContainer(
-  (items: { ingredients: IngredientState[]; remove: ArrayRemoveFunction }) => {
+  (items: { ingredients: Ingredient[]; remove: ArrayRemoveFunction }) => {
     const classes = useStyles()
     return (
       <Grid container spacing={2} className={classes.block}>
-        {items.ingredients.map((ingredient, index) => (
-          <IngredientItem
-            key={`ingredient-${index}`}
-            index={index}
-            ingredient={ingredient}
-            remove={() => {
-              items.remove(index)
-            }}
-          />
-        ))}
+        {items.ingredients.map((ingredient, index) => {
+          return (
+            <IngredientItem
+              key={`ingredient-${index}`}
+              index={index} // Consumed by SortableElement, cannot be reused
+              sortIndex={index}
+              ingredient={ingredient}
+              remove={() => {
+                items.remove(index)
+              }}
+            />
+          )
+        })}
       </Grid>
     )
   }
@@ -197,13 +207,13 @@ const StepHandle = SortableHandle((item: { index: number }) => {
 })
 
 const StepItem = SortableElement(
-  (item: { step: string; index: number; remove: ItemRemoveFunction }) => {
+  (item: { step: string; sortIndex: number; remove: ItemRemoveFunction }) => {
     const classes = useStyles()
     return (
       <ListItem alignItems="flex-start">
-        <StepHandle index={item.index} />
+        <StepHandle index={item.sortIndex} />
         <FastField
-          name={`steps[${item.index}]`}
+          name={`steps[${item.sortIndex}]`}
           label="Step"
           className={classes.stepField}
           component={TextField}
@@ -233,7 +243,8 @@ const StepList = SortableContainer(
         {items.steps.map((step, index) => (
           <StepItem
             key={`step-${index}`}
-            index={index}
+            index={index} // Consumed by SortableElement, cannot be reused
+            sortIndex={index}
             step={step}
             remove={() => {
               items.remove(index)
@@ -246,21 +257,30 @@ const StepList = SortableContainer(
 )
 
 function RecipeEditor(
-  props: ReturnType<typeof mapStateToProps> & typeof mapDispatchToProps
+  props: ReturnType<typeof mapStateToProps> & WithFirestoreProps
 ) {
   const classes = useStyles()
-  const recipe = props.recipe
 
-  const onSubmit = (values: RecipeState) => {
-    props.postRecipe({
-      recipe: values,
-    })
+  // TODO: Better UI integration
+  // TODO: manage out-of-sync data + reload feature?
+  if (props.isLoading) {
+    return <div>Loading...</div>
+  }
+
+  const onSubmit = (values: Recipe) => {
+    props.firestore.set(
+      {
+        collection: "recipes",
+        doc: values.id,
+      },
+      values
+    )
     props.router.history.push(`../${values.id}`)
   }
 
   return (
     <Formik
-      initialValues={recipe}
+      initialValues={props.recipe}
       onSubmit={onSubmit}
       render={({ values }) => (
         <Form>
@@ -400,15 +420,37 @@ function mapStateToProps(
   router: RouteComponentProps<{ id: string }>
 ) {
   const id = router.match.params.id
+  const recipes = state.firestore.data["recipes/" + id]
+
+  let recipe: Recipe
+  let loading = !isLoaded(recipes)
+  if (isEmpty(recipes)) {
+    recipe = newRecipe(id)
+  } else {
+    recipe = recipes[id]
+  }
+
   return {
-    recipe: state.recipes.byId[id] || newRecipe(id),
+    id: router.match.params.id,
+    isLoading: loading,
+    recipe: recipe,
     router: router,
   }
 }
-const mapDispatchToProps = {
-  postRecipe,
-}
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
+export default compose<React.ComponentType>(
+  connect(mapStateToProps),
+  firestoreConnect((props: ReturnType<typeof mapStateToProps>) => {
+    if (!props.id) {
+      return []
+    }
+    return [
+      {
+        collection: "recipes",
+        where: [["id", "==", props.id]],
+        // Need a dedicated variable for each edition
+        // Otherwise, use the same request as RecipeList
+        storeAs: "recipes/" + props.id,
+      },
+    ]
+  })
 )(RecipeEditor)

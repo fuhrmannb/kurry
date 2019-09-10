@@ -15,7 +15,7 @@ import { compose } from "redux"
 import { connect } from "react-redux"
 
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth"
-import firebase from "firebase"
+import firebase from "firebase/app"
 import { makeStyles, Theme, createStyles } from "@material-ui/core/styles"
 
 const useStyles = makeStyles((theme: Theme) =>
