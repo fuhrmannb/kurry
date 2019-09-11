@@ -1,4 +1,4 @@
-import { configureStore } from "redux-starter-kit"
+import { configureStore, getDefaultMiddleware } from "redux-starter-kit"
 
 import firebase from "firebase/app"
 import "firebase/auth"
@@ -7,12 +7,18 @@ import { createFirestoreInstance } from "redux-firestore"
 
 import appReducer from "app/appState"
 import firebaseConfig from "app/firebaseConfig";
+import { actionTypes } from "react-redux-firebase";
 
 firebase.initializeApp(firebaseConfig)
 firebase.firestore()
 
 const store = configureStore({
   reducer: appReducer,
+  middleware: getDefaultMiddleware({
+    serializableCheck: {
+        ignoredActions: [actionTypes.LOGIN]
+    }
+  }),
 })
 
 export const rrfProps = {
