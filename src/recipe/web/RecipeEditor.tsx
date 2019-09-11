@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import { RouteComponentProps } from "react-router-dom"
 import { makeStyles, Theme, createStyles } from "@material-ui/core/styles"
 import {
@@ -41,12 +41,17 @@ import {
   isLoaded,
 } from "react-redux-firebase"
 import { compose } from "redux"
+import ImageUploader from "recipe/web/ImageUploader"
+import produce from "immer"
 
 type ArrayRemoveFunction = (index: number) => void
 type ItemRemoveFunction = () => void
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
+    imageUploader: {
+      marginTop: theme.spacing(1),
+    },
     servingField: {
       maxWidth: 50,
     },
@@ -261,21 +266,55 @@ function RecipeEditor(
 ) {
   const classes = useStyles()
 
+  const [imgFile, setImgFile] = useState<File>()
+  const [imgPreviewURL, setImgPreviewURL] = useState(props.recipe.img)
+
   // TODO: Better UI integration
   // TODO: manage out-of-sync data + reload feature?
   if (props.isLoading) {
     return <div>Loading...</div>
   }
 
-  const onSubmit = (values: Recipe) => {
-    props.firestore.set(
-      {
-        collection: "recipes",
-        doc: values.id,
-      },
-      values
-    )
-    props.router.history.push(`../${values.id}`)
+  const onSubmit = async (values: Recipe) => {
+    try {
+      // Check if image has changed (the preview is not the same)
+      const recipe = await produce(props.recipe, async draft => {
+        if (imgPreviewURL !== draft.img) {
+          const path = `recipes/${draft.id}`
+
+          // Upload new image if any
+          if (imgFile) {
+            // Note: Typescript return type is currently wrong, issue #762 submitted on react-redux-firebase
+            const uploadedFile = (await props.firebase.uploadFile(
+              path,
+              imgFile,
+              undefined, // Don't want custom metadata path
+              {
+                name: "img",
+              }
+            )) as any
+            draft.img = await uploadedFile.uploadTaskSnapshot.ref.getDownloadURL()
+          } else {
+            // Remove previous image
+            await props.firebase.deleteFile(`${path}/img`)
+            draft.img = ""
+          }
+        }
+      })
+
+      props.firestore.set(
+        {
+          collection: "recipes",
+          doc: recipe.id,
+        },
+        recipe
+      )
+      props.router.history.push(`../${recipe.id}`)
+    } catch (error) {
+      // TODO: manage error correctly (notification?)
+      // Also manage upload in progress view? (use Redux actions?)
+      console.error(error)
+    }
   }
 
   return (
@@ -331,6 +370,15 @@ function RecipeEditor(
               </Grid>
             </Grid>
           </Grid>
+          <ImageUploader
+            title="Recipe illustration"
+            onImageUpload={(file, previewURL) => {
+              setImgFile(file)
+              setImgPreviewURL(previewURL)
+            }}
+            initialImageURL={props.recipe.img}
+            className={classes.imageUploader}
+          />
           <Field
             name="tags"
             label="Tags"
@@ -358,7 +406,7 @@ function RecipeEditor(
                 />
                 <Button
                   variant="contained"
-                  color="secondary"
+                  color="default"
                   className={classes.block}
                   onClick={() => arrayHelpers.push(newIngredient())}
                 >
@@ -384,7 +432,7 @@ function RecipeEditor(
                 />
                 <Button
                   variant="contained"
-                  color="secondary"
+                  color="default"
                   className={classes.block}
                   onClick={() => arrayHelpers.push("")}
                 >

@@ -116,6 +116,7 @@ function RecipeViewer(
       <Typography variant="h2" gutterBottom align="center">
         {recipe.title}
       </Typography>
+      <img src={recipe.img} alt="Recipe" />
       <div className={classes.tags}>
         {recipe.tags.map(tag => (
           <Chip
