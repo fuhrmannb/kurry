@@ -49,9 +49,6 @@ type ItemRemoveFunction = () => void
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-    imageUploader: {
-      marginTop: theme.spacing(1),
-    },
     servingField: {
       maxWidth: 50,
     },
@@ -103,7 +100,7 @@ const IngredientItem = SortableElement(
   }) => {
     const classes = useStyles()
     return (
-      <Grid item xs={6} sm={4} md={3} lg={2} xl={1}>
+      <Grid item xs={6} sm={4} lg={3} xl={2}>
         <Card>
           <IngredientHandle />
           <CardHeader
@@ -278,7 +275,7 @@ function RecipeEditor(
   const onSubmit = async (values: Recipe) => {
     try {
       // Check if image has changed (the preview is not the same)
-      const recipe = await produce(props.recipe, async draft => {
+      const recipe = await produce(values, async draft => {
         if (imgPreviewURL !== draft.img) {
           const path = `recipes/${draft.id}`
 
@@ -377,7 +374,7 @@ function RecipeEditor(
               setImgPreviewURL(previewURL)
             }}
             initialImageURL={props.recipe.img}
-            className={classes.imageUploader}
+            className={classes.block}
           />
           <Field
             name="tags"
