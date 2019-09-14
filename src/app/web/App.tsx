@@ -27,6 +27,7 @@ import Home from "app/web/Home"
 import Recipe from "recipe/web/Recipe"
 import About from "app/web/About"
 import AuthMenu from "app/web/AuthMenu"
+import Container from "@material-ui/core/Container"
 
 const drawerWidth = 240
 
@@ -158,11 +159,13 @@ export default function App() {
         </nav>
         <main className={classes.content}>
           <div className={classes.toolbar} />
-          <Switch>
-            <Route exact path="/" component={Home} />
-            <Route path="/recipe" component={Recipe} />
-            <Route path="/about" component={About} />
-          </Switch>
+          <Container>
+            <Switch>
+              <Route exact path="/" component={Home} />
+              <Route path="/recipe" component={Recipe} />
+              <Route path="/about" component={About} />
+            </Switch>
+          </Container>
         </main>
       </div>
     </Router>
