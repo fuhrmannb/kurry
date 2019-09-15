@@ -106,8 +106,8 @@ function RecipeViewer(
                 Ingredients
               </Typography>
               <List>
-                {recipe.ingredients.map(ingredient => (
-                  <ListItem>
+                {recipe.ingredients.map((ingredient, index) => (
+                  <ListItem key={`ingredient${index}`}>
                     <ListItemAvatar>
                       <Avatar src={ingredient.img} alt={ingredient.name} />
                     </ListItemAvatar>
@@ -170,7 +170,7 @@ function mapStateToProps(
   router: RouteComponentProps<{ id: string }>
 ) {
   const id = router.match.params.id
-  const recipes = state.firestore.data["recipes/" + id]
+  const recipes = state.firestore.data.recipes
 
   let recipe = newRecipe()
   let loading = !isLoaded(recipes)
@@ -196,10 +196,7 @@ export default compose<React.ComponentType>(
     return [
       {
         collection: "recipes",
-        where: [["id", "==", props.id]],
-        // Need a dedicated variable for each edition
-        // Otherwise, use the same request as RecipeList
-        storeAs: "recipes/" + props.id,
+        doc: props.id,
       },
     ]
   })

@@ -136,9 +136,12 @@ function RecipeList(
     setSelectedRecipe(newRecipe())
   }
   const agreeDeleteDialog = () => {
+    const id = selectedReciped.id
+    // Delete image file and document
+    props.firebase.deleteFile(`/recipes/${id}/img`)
     props.firestore.delete({
       collection: "recipes",
-      doc: selectedReciped.id,
+      doc: id,
     })
     closeDeleteDialog()
   }
@@ -191,14 +194,22 @@ function RecipeList(
 
 function mapStateToProps(state: AppState, router: RouteComponentProps) {
   return {
+    uid: state.firebase.auth.uid,
     recipes: state.firestore.ordered.recipes as Recipe[],
   }
 }
 export default compose<React.ComponentType>(
-  firestoreConnect(() => [
-    {
-      collection: "recipes",
-    },
-  ]),
-  connect(mapStateToProps)
+  // Need to pass connect first, otherwise uid is not passed into firestoreConnect
+  connect(mapStateToProps),
+  firestoreConnect((props: ReturnType<typeof mapStateToProps>) => {
+    if (!props.uid) {
+      return []
+    }
+    return [
+      {
+        collection: "recipes",
+        where: ["uid", "==", props.uid],
+      },
+    ]
+  })
 )(RecipeList)

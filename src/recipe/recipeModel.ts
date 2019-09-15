@@ -1,4 +1,6 @@
-export type Recipe = {
+import { UserProperty } from "app/model";
+
+export type Recipe = UserProperty & {
   id: string
   title: string
   img: string
@@ -11,9 +13,10 @@ export type Recipe = {
 }
 export type Ingredient = { img: string; name: string; amount?: number; unit?: string }
 
-export const newRecipe = (id: string = "") => (
+export const newRecipe = (id: string = "", uid: string= "") => (
   {
     id: id,
+    uid: uid,
     title: "",
     img: "",
     tags: [],

@@ -1,0 +1,50 @@
+function auth() {
+  return request != null && request.auth != null
+}
+
+function hasRequestMetadata(key) {
+  return request != null
+      && request.resource != null
+      && request.resource.metadata != null
+      && key in request.resource.metadata
+}
+
+function userOwnRequest() {
+  return auth()
+      && hasRequestMetadata("uid")
+      && request.resource.metadata["uid"] == request.auth.uid
+}
+
+function hasResourceMetadata(key) {
+  return resource != null
+      && resource.metadata != null
+      && key in resource.metadata
+}
+
+function userOwnResource() {
+  return auth()
+      && hasResourceMetadata("uid")
+      && resource.metadata["uid"] == request.auth.uid
+}
+
+// Only allow uploads of any image file that's less than 1MB
+function validImage() {
+  return request.resource != null
+      && request.resource.size != null
+      && request.resource.size < 1 * 1024 * 1024
+      && request.resource.contentType != null
+      && request.resource.contentType.matches('image/.*')
+}
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Recipe images
+    match /recipes/{recipeID}/img {
+      allow read, delete: if userOwnResource()
+      allow create: if userOwnRequest() && validImage()
+      allow update: if userOwnResource() && userOwnRequest() && validImage()
+    }
+
+  }
+}

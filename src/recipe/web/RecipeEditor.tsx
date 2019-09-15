@@ -277,29 +277,31 @@ function RecipeEditor(
       // Check if image has changed (the preview is not the same)
       const recipe = await produce(values, async draft => {
         if (imgPreviewURL !== draft.img) {
-          const path = `recipes/${draft.id}`
+          const path = `/recipes/${draft.id}/img`
 
           // Upload new image if any
           if (imgFile) {
-            // Note: Typescript return type is currently wrong, issue #762 submitted on react-redux-firebase
-            const uploadedFile = (await props.firebase.uploadFile(
-              path,
-              imgFile,
-              undefined, // Don't want custom metadata path
-              {
-                name: "img",
-              }
-            )) as any
-            draft.img = await uploadedFile.uploadTaskSnapshot.ref.getDownloadURL()
+            // FIXME: maybe use previous code with uploadFile when metadata feature will be available
+            console.log({
+              customMetadata: { uid: props.uid },
+            })
+            const storageRef = props.firebase.storage().ref()
+            const uploadedFile = await storageRef.child(path).put(imgFile, {
+              customMetadata: { uid: props.uid },
+            })
+
+            draft.img = await uploadedFile.ref.getDownloadURL()
           } else {
             // Remove previous image
-            await props.firebase.deleteFile(`${path}/img`)
+            await props.firebase.deleteFile(path)
             draft.img = ""
           }
         }
       })
 
-      props.firestore.set(
+      // Need to wait response, otherwise react-redux-firebase listener is unset
+      // before data is updated in Redux state
+      await props.firestore.set(
         {
           collection: "recipes",
           doc: recipe.id,
@@ -465,18 +467,16 @@ function mapStateToProps(
   router: RouteComponentProps<{ id: string }>
 ) {
   const id = router.match.params.id
-  const recipes = state.firestore.data["recipes/" + id]
+  const uid = state.firebase.auth.uid
 
-  let recipe: Recipe
-  let loading = !isLoaded(recipes)
-  if (isEmpty(recipes)) {
-    recipe = newRecipe(id)
-  } else {
-    recipe = recipes[id]
-  }
+  const dbRecipe =
+    state.firestore.data.recipes && state.firestore.data.recipes[id]
+  const loading = !isLoaded(dbRecipe)
+  const recipe = isEmpty(dbRecipe) ? newRecipe(id, uid) : dbRecipe
 
   return {
     id: router.match.params.id,
+    uid: uid,
     isLoading: loading,
     recipe: recipe,
     router: router,
@@ -491,10 +491,7 @@ export default compose<React.ComponentType>(
     return [
       {
         collection: "recipes",
-        where: [["id", "==", props.id]],
-        // Need a dedicated variable for each edition
-        // Otherwise, use the same request as RecipeList
-        storeAs: "recipes/" + props.id,
+        doc: props.id,
       },
     ]
   })

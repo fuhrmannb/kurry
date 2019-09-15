@@ -27,7 +27,13 @@ import Home from "app/web/Home"
 import Recipe from "recipe/web/Recipe"
 import About from "app/web/About"
 import AuthMenu from "app/web/AuthMenu"
+import LoggedRoute from "app/routes/LoggedRoute"
+
 import Container from "@material-ui/core/Container"
+import { AppState } from "app/appState"
+import { isEmpty, firebaseConnect } from "react-redux-firebase"
+import { compose } from "redux"
+import { connect } from "react-redux"
 
 const drawerWidth = 240
 
@@ -71,7 +77,7 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 )
 
-export default function App() {
+function App({ auth }: ReturnType<typeof mapStateToProps>) {
   const classes = useStyles()
   const theme = useTheme()
   const [mobileOpen, setMobileOpen] = React.useState(false)
@@ -79,21 +85,28 @@ export default function App() {
   function handleDrawerToggle() {
     setMobileOpen(!mobileOpen)
   }
-
-  const drawer = (
-    <div>
-      <div className={classes.toolbar}>
-        <Link to="/">DuckFood</Link>
-      </div>
+  const authDrawer = isEmpty(auth) ? (
+    <React.Fragment />
+  ) : (
+    <React.Fragment>
       <Divider />
       <List>
-        <ListItem button component={Link} to="/recipe/" key="recipe">
+        <ListItem button component={Link} to="/recipes/" key="recipes">
           <ListItemIcon>
             <InboxIcon />
           </ListItemIcon>
           <ListItemText primary="Recipes" />
         </ListItem>
       </List>
+    </React.Fragment>
+  )
+
+  const drawer = (
+    <div>
+      <div className={classes.toolbar}>
+        <Link to="/">DuckFood</Link>
+      </div>
+      {authDrawer}
       <Divider />
       <List>
         <ListItem button component={Link} to="/about/" key="about">
@@ -162,7 +175,7 @@ export default function App() {
           <Container>
             <Switch>
               <Route exact path="/" component={Home} />
-              <Route path="/recipe" component={Recipe} />
+              <LoggedRoute path="/recipes" component={Recipe} />
               <Route path="/about" component={About} />
             </Switch>
           </Container>
@@ -171,3 +184,14 @@ export default function App() {
     </Router>
   )
 }
+
+function mapStateToProps(state: AppState) {
+  return {
+    auth: state.firebase.auth,
+  }
+}
+
+export default compose<typeof Route>(
+  connect(mapStateToProps),
+  firebaseConnect()
+)(App)
