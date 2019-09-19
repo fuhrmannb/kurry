@@ -43,6 +43,7 @@ import {
 import { compose } from "redux"
 import ImageUploader from "recipe/web/ImageUploader"
 import produce from "immer"
+import defaultIngredientImage from "recipe/resources/defaultIngredient.svg"
 
 type ArrayRemoveFunction = (index: number) => void
 type ItemRemoveFunction = () => void
@@ -120,7 +121,7 @@ const IngredientItem = SortableElement(
           <CardMedia
             className={classes.ingredientMedia}
             //TODO: manage image upload with Firebase Storage
-            image={item.ingredient.img}
+            image={item.ingredient.img || defaultIngredientImage}
             title={item.ingredient.name}
           />
           <CardContent>

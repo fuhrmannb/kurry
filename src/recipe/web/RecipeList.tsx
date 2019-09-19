@@ -27,6 +27,7 @@ import {
   isLoaded,
   isEmpty,
 } from "react-redux-firebase"
+import defaultRecipeImage from "recipe/resources/defaultRecipe.jpg"
 
 const itemStyles = makeStyles(
   createStyles({
@@ -46,7 +47,7 @@ function RecipeItem(props: { recipe: Recipe; deleteRecipe: () => void }) {
         <CardActionArea component={Link} to={recipe.id}>
           <CardMedia
             className={classes.media}
-            image={recipe.img}
+            image={recipe.img || defaultRecipeImage}
             title="Test"
           />
           <CardContent>

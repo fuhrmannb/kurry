@@ -31,6 +31,8 @@ import {
   WithFirestoreProps,
 } from "react-redux-firebase"
 import { compose } from "redux"
+import defaultRecipeImage from "recipe/resources/defaultRecipe.jpg"
+import defaultIngredientImage from "recipe/resources/defaultIngredient.svg"
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -86,7 +88,7 @@ function RecipeViewer(
           <Card>
             <CardHeader title={recipe.title} />
             <CardMedia
-              image={recipe.img}
+              image={recipe.img || defaultRecipeImage}
               title={recipe.title}
               className={classes.recipeImage}
             />
@@ -109,7 +111,10 @@ function RecipeViewer(
                 {recipe.ingredients.map((ingredient, index) => (
                   <ListItem key={`ingredient${index}`}>
                     <ListItemAvatar>
-                      <Avatar src={ingredient.img} alt={ingredient.name} />
+                      <Avatar
+                        src={ingredient.img || defaultIngredientImage}
+                        alt={ingredient.name}
+                      />
                     </ListItemAvatar>
                     <ListItemText
                       primary={ingredient.name}
