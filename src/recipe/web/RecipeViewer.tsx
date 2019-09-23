@@ -23,7 +23,7 @@ import {
 import EditIcon from "@material-ui/icons/Edit"
 import { AppState } from "app/appState"
 import { connect } from "react-redux"
-import { newRecipe } from "recipe/recipeModel"
+import { newRecipe, getIngredientInfo } from "recipe/recipeModel"
 import {
   firestoreConnect,
   isLoaded,
@@ -108,22 +108,25 @@ function RecipeViewer(
                 Ingredients
               </Typography>
               <List>
-                {recipe.ingredients.map((ingredient, index) => (
-                  <ListItem key={`ingredient${index}`}>
-                    <ListItemAvatar>
-                      <Avatar
-                        src={ingredient.img || defaultIngredientImage}
-                        alt={ingredient.name}
+                {recipe.ingredients.map((ing, index) => {
+                  let ingredient = getIngredientInfo(ing)
+                  return (
+                    <ListItem key={`ingredient${index}`}>
+                      <ListItemAvatar>
+                        <Avatar
+                          src={ingredient.img || defaultIngredientImage}
+                          alt={ingredient.name}
+                        />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={ingredient.name}
+                        secondary={`${
+                          ingredient.amount ? ingredient.amount : ""
+                        } ${ingredient.unit ? ingredient.unit : ""}`}
                       />
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={ingredient.name}
-                      secondary={`${
-                        ingredient.amount ? ingredient.amount : ""
-                      } ${ingredient.unit ? ingredient.unit : ""}`}
-                    />
-                  </ListItem>
-                ))}
+                    </ListItem>
+                  )
+                })}
               </List>
             </CardContent>
             <CardActions></CardActions>

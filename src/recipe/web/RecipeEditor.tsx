@@ -3,35 +3,35 @@ import { RouteComponentProps } from "react-router-dom"
 import { makeStyles, Theme, createStyles } from "@material-ui/core/styles"
 import {
   Grid,
-  Card,
-  CardContent,
-  FormControl,
-  InputLabel,
-  Input,
-  CardMedia,
-  CardHeader,
   IconButton,
   Chip,
   List,
   ListItem,
   ListItemIcon,
   Button,
+  TextField as TextFieldOrig,
+  Card,
+  CardHeader,
+  CardMedia,
+  CardContent,
 } from "@material-ui/core"
 import ClearIcon from "@material-ui/icons/Clear"
 import AccessTimeIcon from "@material-ui/icons/AccessTime"
 import PersonIcon from "@material-ui/icons/Person"
-import DragHandleIcon from "@material-ui/icons/DragHandle"
 import { SortableElement, SortableContainer } from "react-sortable-hoc"
 import { AppState } from "app/appState"
 import {
   Recipe,
-  Ingredient,
+  RecipeIngredient,
   newRecipe,
   newIngredient,
+  getIngredientInfo,
+  RecipeIngredientFoodDB,
+  RecipeIngredientCustom,
 } from "recipe/recipeModel"
 import { connect } from "react-redux"
-import { Formik, Form, FastField, FieldArray, Field } from "formik"
-import { TextField, Select } from "formik-material-ui"
+import { Formik, Form, FieldArray, Field, FieldProps } from "formik"
+import { TextField } from "formik-material-ui"
 import { ChipInput } from "material-ui-formik-components/ChipInput"
 import { SortableHandle } from "react-sortable-hoc"
 import {
@@ -43,6 +43,9 @@ import {
 import { compose } from "redux"
 import ImageUploader from "recipe/web/ImageUploader"
 import produce from "immer"
+import DragHandleIcon from "@material-ui/icons/DragHandle"
+import Autocomplete from "@material-ui/lab/Autocomplete"
+import FoodDB, { Ingredient, Units } from "recipe/fooddb/fooddb.gen"
 import defaultIngredientImage from "recipe/resources/defaultIngredient.svg"
 
 type ArrayRemoveFunction = (index: number) => void
@@ -58,6 +61,14 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     block: {
       marginTop: theme.spacing(2),
+    },
+    stepNumber: {
+      marginLeft: theme.spacing(-0.6),
+    },
+    stepField: {
+      marginLeft: theme.spacing(-3),
+      marginTop: theme.spacing(1.2),
+      marginBottom: theme.spacing(-1),
     },
     ingredientMedia: {
       height: 0,
@@ -76,14 +87,6 @@ const useStyles = makeStyles((theme: Theme) =>
     amountField: {
       maxWidth: 55,
     },
-    stepNumber: {
-      marginLeft: theme.spacing(-0.6),
-    },
-    stepField: {
-      marginLeft: theme.spacing(-3),
-      marginTop: theme.spacing(1.2),
-      marginBottom: theme.spacing(-1),
-    },
   })
 )
 
@@ -93,13 +96,80 @@ const IngredientHandle = SortableHandle(() => {
   return <DragHandleIcon className={classes.ingredientDragHandle} />
 })
 
-const IngredientItem = SortableElement(
+const IngredientAutocomplete = (props: FieldProps) => {
+  const ingredientInfo = getIngredientInfo({
+    spec: props.field.value,
+  } as RecipeIngredient)
+  return (
+    <Autocomplete<Ingredient | string>
+      autoSelect
+      freeSolo
+      options={Object.values(FoodDB.ingredients).sort((a, b) => {
+        // TODO: manage i18n
+        // TODO: manage multiple categories or only first?
+        let catA = FoodDB.categories[a.categories[0]].name.fr || ""
+        let catB = FoodDB.categories[b.categories[0]].name.fr || ""
+        if (catA !== catB) {
+          return catA.localeCompare(catB)
+        }
+        return a.name.fr.localeCompare(b.name.fr)
+      })}
+      getOptionLabel={(option) => {
+        if (option && typeof option !== "string") {
+          // TODO: manage i18n
+          return option.name.fr || ""
+        }
+        return option
+      }}
+      groupBy={(option) => {
+        if (option && typeof option !== "string") {
+          // TODO: manage multiple categories or only first?
+          let cat = FoodDB.categories[option.categories[0]]
+          // TODO: manage i18n
+          return cat.name.fr || ""
+        }
+        return ""
+      }}
+      value={ingredientInfo.name}
+      renderInput={(params) => {
+        return (
+          <TextFieldOrig
+            {...params}
+            margin="normal"
+            label="Name"
+            fullWidth
+            required
+          />
+        )
+      }}
+      onChange={(
+        _: React.ChangeEvent<{}>,
+        value: Ingredient | string | null
+      ) => {
+        if (value && typeof value !== "string") {
+          props.form.setFieldValue(props.field.name, {
+            type: "fooddb",
+            ref: value.id,
+          } as RecipeIngredientFoodDB)
+        } else {
+          props.form.setFieldValue(props.field.name, {
+            type: "custom",
+            name: value,
+          } as RecipeIngredientCustom)
+        }
+      }}
+    />
+  )
+}
+
+export const IngredientEditCard = SortableElement(
   (item: {
-    ingredient: Ingredient
+    ingredient: RecipeIngredient
     sortIndex: number
     remove: ItemRemoveFunction
   }) => {
     const classes = useStyles()
+    const info = getIngredientInfo(item.ingredient)
     return (
       <Grid item xs={6} sm={4} lg={3} xl={2}>
         <Card>
@@ -120,50 +190,44 @@ const IngredientItem = SortableElement(
           />
           <CardMedia
             className={classes.ingredientMedia}
-            //TODO: manage image upload with Firebase Storage
-            image={item.ingredient.img || defaultIngredientImage}
-            title={item.ingredient.name}
+            image={info.img || defaultIngredientImage}
+            title={info.name}
           />
           <CardContent>
-            <FastField
-              name={`ingredients[${item.sortIndex}].name`}
-              label="Name"
-              component={TextField}
-              fullWidth
+            <Field
+              name={`ingredients[${item.sortIndex}].spec`}
               required
+              component={IngredientAutocomplete}
             />
-            <FastField
+            <Field
               name={`ingredients[${item.sortIndex}].amount`}
               label="Amount"
               component={TextField}
               type="number"
               className={classes.amountField}
             />
-            <FormControl>
-              <InputLabel
-                shrink
-                htmlFor={`ingredientUnitPlacehoder${item.sortIndex}`}
-              >
-                Unit
-              </InputLabel>
-              <FastField
-                name={`ingredients[${item.sortIndex}].unit`}
-                component={Select}
-                native
-                input={
-                  <Input
-                    name="unit"
-                    id={`ingredientUnitPlacehoder${item.sortIndex}`}
-                  />
-                }
-              >
-                <option value="">Each</option>
-                <option value="g">g</option>
-                <option value="Kg">Kg</option>
-                <option value="cL">cL</option>
-                <option value="L">L</option>
-              </FastField>
-            </FormControl>
+            <Field
+              name={`ingredients[${item.sortIndex}].unit`}
+              component={TextField}
+              select
+              label="Unit"
+              SelectProps={{
+                native: true,
+              }}
+            >
+              {info.availableUnits.map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
+              {Units.filter((e) => !info.availableUnits.includes(e)).map(
+                (unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                )
+              )}
+            </Field>
           </CardContent>
         </Card>
       </Grid>
@@ -172,13 +236,13 @@ const IngredientItem = SortableElement(
 )
 
 const IngredientGrid = SortableContainer(
-  (items: { ingredients: Ingredient[]; remove: ArrayRemoveFunction }) => {
+  (items: { ingredients: RecipeIngredient[]; remove: ArrayRemoveFunction }) => {
     const classes = useStyles()
     return (
       <Grid container spacing={2} className={classes.block}>
         {items.ingredients.map((ingredient, index) => {
           return (
-            <IngredientItem
+            <IngredientEditCard
               key={`ingredient-${index}`}
               index={index} // Consumed by SortableElement, cannot be reused
               sortIndex={index}
@@ -215,7 +279,7 @@ const StepItem = SortableElement(
     return (
       <ListItem alignItems="flex-start">
         <StepHandle index={item.sortIndex} />
-        <FastField
+        <Field
           name={`steps[${item.sortIndex}]`}
           label="Step"
           className={classes.stepField}
@@ -276,16 +340,13 @@ function RecipeEditor(
   const onSubmit = async (values: Recipe) => {
     try {
       // Check if image has changed (the preview is not the same)
-      const recipe = await produce(values, async draft => {
+      const recipe = await produce(values, async (draft) => {
         if (imgPreviewURL !== draft.img) {
           const path = `/recipes/${draft.id}/img`
 
           // Upload new image if any
           if (imgFile) {
             // FIXME: maybe use previous code with uploadFile when metadata feature will be available
-            console.log({
-              customMetadata: { uid: props.uid },
-            })
             const storageRef = props.firebase.storage().ref()
             const uploadedFile = await storageRef.child(path).put(imgFile, {
               customMetadata: { uid: props.uid },
@@ -318,14 +379,12 @@ function RecipeEditor(
   }
 
   return (
-    <Formik
-      initialValues={props.recipe}
-      onSubmit={onSubmit}
-      render={({ values }) => (
+    <Formik initialValues={props.recipe} onSubmit={onSubmit}>
+      {({ values }) => (
         <Form>
           <Grid container>
             <Grid item xs={6} sm={7} md={8} lg={9} xl={10}>
-              <FastField
+              <Field
                 name="title"
                 label="Title"
                 component={TextField}
@@ -341,7 +400,7 @@ function RecipeEditor(
                       <PersonIcon />
                     </Grid>
                     <Grid item>
-                      <FastField
+                      <Field
                         name="servings"
                         label="Servings"
                         className={classes.servingField}
@@ -357,7 +416,7 @@ function RecipeEditor(
                       <AccessTimeIcon />
                     </Grid>
                     <Grid item>
-                      <FastField
+                      <Field
                         name="time"
                         label="Time"
                         className={classes.timeField}
@@ -389,9 +448,8 @@ function RecipeEditor(
             placeholder="Type and press enter to add recipe tags"
             newChipKeyCodes={[13, 32, 188, 190]}
           />
-          <FieldArray
-            name="ingredients"
-            render={arrayHelpers => (
+          <FieldArray name="ingredients">
+            {(arrayHelpers) => (
               <React.Fragment>
                 <IngredientGrid
                   useDragHandle
@@ -414,10 +472,9 @@ function RecipeEditor(
                 </Button>
               </React.Fragment>
             )}
-          />
-          <FieldArray
-            name="steps"
-            render={arrayHelpers => (
+          </FieldArray>
+          <FieldArray name="steps">
+            {(arrayHelpers) => (
               <React.Fragment>
                 <StepList
                   axis="y"
@@ -440,8 +497,8 @@ function RecipeEditor(
                 </Button>
               </React.Fragment>
             )}
-          />
-          <FastField
+          </FieldArray>
+          <Field
             name="notes"
             label="Notes"
             className={classes.block}
@@ -459,7 +516,7 @@ function RecipeEditor(
           </Button>
         </Form>
       )}
-    />
+    </Formik>
   )
 }
 
@@ -473,7 +530,7 @@ function mapStateToProps(
   const dbRecipe =
     state.firestore.data.recipes && state.firestore.data.recipes[id]
   const loading = !isLoaded(dbRecipe)
-  const recipe = isEmpty(dbRecipe) ? newRecipe(id, uid) : dbRecipe
+  const recipe = isEmpty(dbRecipe) ? newRecipe(id, uid) : (dbRecipe as Recipe)
 
   return {
     id: router.match.params.id,

@@ -1,4 +1,5 @@
-import { UserProperty } from "app/model";
+import { UserProperty } from "app/model"
+import FoodDB, { Unit, Units } from "./fooddb/fooddb.gen"
 
 export type Recipe = UserProperty & {
   id: string
@@ -7,11 +8,59 @@ export type Recipe = UserProperty & {
   tags: string[]
   time: number
   servings: number
-  ingredients: Ingredient[]
+  ingredients: RecipeIngredient[]
   steps: string[]
   notes: string
 }
-export type Ingredient = { img: string; name: string; amount?: number; unit?: string }
+
+export type RecipeIngredient = {
+  spec: RecipeIngredientFoodDB | RecipeIngredientCustom
+  amount?: number
+  unit?: Unit
+}
+export type RecipeIngredientSpec = {
+  type: string
+}
+export type RecipeIngredientFoodDB = RecipeIngredientSpec & {
+  type: "fooddb"
+  ref: string
+}
+export type RecipeIngredientCustom = RecipeIngredientSpec & {
+  type: "custom"
+  name: string
+}
+
+export type RecipeIngredientInfo = {
+  name: string
+  img?: string
+  amount?: number
+  availableUnits: Unit[]
+  unit?: Unit
+}
+
+export function getIngredientInfo(ing: RecipeIngredient): RecipeIngredientInfo {
+  let result: RecipeIngredientInfo = {
+    name: "",
+    availableUnits: [...Units],
+    amount: ing.amount,
+    unit: ing.unit
+  }
+
+  let spec = ing.spec
+  switch (spec.type) {
+    case "fooddb":
+      let db = FoodDB.ingredients[spec.ref]
+      // TODO: mange i18n
+      result.name = db.name.fr
+      result.img = db.img
+      result.availableUnits = db.units
+      break
+    case "custom":
+      result.name = spec.name
+      break
+  }
+  return result
+}
 
 export const newRecipe = (id: string = "", uid: string= "") => (
   {
@@ -30,7 +79,6 @@ export const newRecipe = (id: string = "", uid: string= "") => (
 
 export const newIngredient = () => (
   {
-    img: "",
-    name: "",
-  } as Ingredient
+    spec: {name: ""},
+  } as RecipeIngredient
 )

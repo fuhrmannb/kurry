@@ -84,9 +84,9 @@ function RecipeItem(props: { recipe: Recipe; deleteRecipe: () => void }) {
                 </Grid>
               </Grid>
             </Grid>
-            <Typography variant="body2" color="textSecondary" component="p">
-              // TODO: Description (Images des principaux ingrédients ?)
-            </Typography>
+            {/* <Typography variant="body2" color="textSecondary" component="p">
+               TODO: Description (Images des principaux ingrédients ?)
+            </Typography> */}
           </CardContent>
         </CardActionArea>
         <CardActions>
@@ -156,7 +156,7 @@ function RecipeList(
   } else {
     recipeItems = (
       <Grid container spacing={3}>
-        {props.recipes.map(r => (
+        {props.recipes.map((r) => (
           <RecipeItem
             key={r.id}
             recipe={r}
