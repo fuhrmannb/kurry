@@ -18,9 +18,10 @@ import Toolbar from "@material-ui/core/Toolbar"
 import Typography from "@material-ui/core/Typography"
 import {
   makeStyles,
-  useTheme,
   Theme,
   createStyles,
+  createMuiTheme,
+  ThemeProvider,
 } from "@material-ui/core/styles"
 
 import Home from "app/web/Home"
@@ -34,6 +35,7 @@ import { AppState } from "app/appState"
 import { isEmpty, firebaseConnect } from "react-redux-firebase"
 import { compose } from "redux"
 import { connect } from "react-redux"
+import { useMediaQuery } from "@material-ui/core"
 
 const drawerWidth = 240
 
@@ -79,7 +81,16 @@ const useStyles = makeStyles((theme: Theme) =>
 
 function App({ auth }: ReturnType<typeof mapStateToProps>) {
   const classes = useStyles()
-  const theme = useTheme()
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)")
+  const theme = React.useMemo(
+    () =>
+      createMuiTheme({
+        palette: {
+          type: prefersDarkMode ? "dark" : "light",
+        },
+      }),
+    [prefersDarkMode]
+  )
   const [mobileOpen, setMobileOpen] = React.useState(false)
 
   function handleDrawerToggle() {
@@ -120,68 +131,70 @@ function App({ auth }: ReturnType<typeof mapStateToProps>) {
   )
 
   return (
-    <Router>
-      <div className={classes.root}>
-        <CssBaseline />
-        <AppBar position="fixed" className={classes.appBar}>
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="Open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              className={classes.menuButton}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap>
-              Welcome to DuckFood!
-            </Typography>
-            <AuthMenu />
-          </Toolbar>
-        </AppBar>
-        <nav className={classes.drawer} aria-label="Mailbox folders">
-          {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
-          <Hidden mdUp implementation="css">
-            <Drawer
-              variant="temporary"
-              anchor={theme.direction === "rtl" ? "right" : "left"}
-              open={mobileOpen}
-              onClose={handleDrawerToggle}
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-              ModalProps={{
-                keepMounted: true, // Better open performance on mobile.
-              }}
-            >
-              {drawer}
-            </Drawer>
-          </Hidden>
-          <Hidden smDown implementation="css">
-            <Drawer
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-              variant="permanent"
-              open
-            >
-              {drawer}
-            </Drawer>
-          </Hidden>
-        </nav>
-        <main className={classes.content}>
-          <div className={classes.toolbar} />
-          <Container>
-            <Switch>
-              <Route exact path="/" component={Home} />
-              <LoggedRoute path="/recipes" component={Recipe} />
-              <Route path="/about" component={About} />
-            </Switch>
-          </Container>
-        </main>
-      </div>
-    </Router>
+    <ThemeProvider theme={theme}>
+      <Router>
+        <div className={classes.root}>
+          <CssBaseline />
+          <AppBar position="fixed" className={classes.appBar}>
+            <Toolbar>
+              <IconButton
+                color="inherit"
+                aria-label="Open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+                className={classes.menuButton}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" noWrap>
+                Welcome to DuckFood!
+              </Typography>
+              <AuthMenu />
+            </Toolbar>
+          </AppBar>
+          <nav className={classes.drawer} aria-label="Mailbox folders">
+            {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
+            <Hidden mdUp implementation="css">
+              <Drawer
+                variant="temporary"
+                anchor={theme.direction === "rtl" ? "right" : "left"}
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+                ModalProps={{
+                  keepMounted: true, // Better open performance on mobile.
+                }}
+              >
+                {drawer}
+              </Drawer>
+            </Hidden>
+            <Hidden smDown implementation="css">
+              <Drawer
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+                variant="permanent"
+                open
+              >
+                {drawer}
+              </Drawer>
+            </Hidden>
+          </nav>
+          <main className={classes.content}>
+            <div className={classes.toolbar} />
+            <Container>
+              <Switch>
+                <Route exact path="/" component={Home} />
+                <LoggedRoute path="/recipes" component={Recipe} />
+                <Route path="/about" component={About} />
+              </Switch>
+            </Container>
+          </main>
+        </div>
+      </Router>
+    </ThemeProvider>
   )
 }
 
