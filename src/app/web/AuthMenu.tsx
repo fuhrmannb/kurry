@@ -40,7 +40,7 @@ function AuthDialog(
       aria-labelledby="auth-dialog"
       open={props.open}
     >
-      <DialogTitle id="auth-dialog-title">Sign in to DuckFood</DialogTitle>
+      <DialogTitle id="auth-dialog-title">Sign in to Kurry</DialogTitle>
       <StyledFirebaseAuth
         uiConfig={{
           signInFlow: "popup",

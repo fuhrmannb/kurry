@@ -115,7 +115,7 @@ function App({ auth }: ReturnType<typeof mapStateToProps>) {
   const drawer = (
     <div>
       <div className={classes.toolbar}>
-        <Link to="/">DuckFood</Link>
+        <Link to="/">Kurry</Link>
       </div>
       {authDrawer}
       <Divider />
@@ -147,7 +147,7 @@ function App({ auth }: ReturnType<typeof mapStateToProps>) {
                 <MenuIcon />
               </IconButton>
               <Typography variant="h6" noWrap>
-                Welcome to DuckFood!
+                Welcome to Kurry!
               </Typography>
               <AuthMenu />
             </Toolbar>
