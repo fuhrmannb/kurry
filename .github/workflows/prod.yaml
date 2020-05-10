@@ -1,15 +1,15 @@
 ---
 
-name: development
+name: production
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - "*"
 
 jobs:
   build:
-    name: Build - Dev
+    name: Build - Prod
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -22,13 +22,13 @@ jobs:
       - name: Build app
         run: npm run build --if-present
         env:
-          REACT_APP_FIREBASE_API_KEY: ${{ secrets.DEV_REACT_APP_FIREBASE_API_KEY }}
-          REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ secrets.DEV_REACT_APP_FIREBASE_AUTH_DOMAIN }}
-          REACT_APP_FIREBASE_DATABASE_URL: ${{ secrets.DEV_REACT_APP_FIREBASE_DATABASE_URL }}
-          REACT_APP_FIREBASE_PROJECT_ID: ${{ secrets.DEV_REACT_APP_FIREBASE_PROJECT_ID }}
-          REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ secrets.DEV_REACT_APP_FIREBASE_STORAGE_BUCKET }}
-          REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.DEV_REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
-          REACT_APP_FIREBASE_APP_ID: ${{ secrets.DEV_REACT_APP_FIREBASE_APP_ID }}
+          REACT_APP_FIREBASE_API_KEY: ${{ secrets.PROD_REACT_APP_FIREBASE_API_KEY }}
+          REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ secrets.PROD_REACT_APP_FIREBASE_AUTH_DOMAIN }}
+          REACT_APP_FIREBASE_DATABASE_URL: ${{ secrets.PROD_REACT_APP_FIREBASE_DATABASE_URL }}
+          REACT_APP_FIREBASE_PROJECT_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_PROJECT_ID }}
+          REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ secrets.PROD_REACT_APP_FIREBASE_STORAGE_BUCKET }}
+          REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
+          REACT_APP_FIREBASE_APP_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_APP_ID }}
       - name: Upload build artifact
         uses: actions/upload-artifact@master
         with:
@@ -36,7 +36,7 @@ jobs:
           path: build
 
   deploy:
-    name: deploy
+    name: Deploy
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -51,5 +51,5 @@ jobs:
         with:
           args: deploy
         env:
-          FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
-          PROJECT_ID: duckfood-9dddc
+          FIREBASE_TOKEN: ${{ secrets.PROD_FIREBASE_TOKEN }}
+          PROJECT_ID: kurry-prod
