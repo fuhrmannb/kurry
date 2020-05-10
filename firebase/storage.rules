@@ -1,3 +1,5 @@
+rules_version = '2'
+
 function auth() {
   return request != null && request.auth != null
 }
