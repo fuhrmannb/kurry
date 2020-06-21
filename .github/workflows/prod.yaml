@@ -1,55 +1,56 @@
 ---
 
-name: production
+# TODO:
+# name: production
 
-on:
-  push:
-    tags:
-      - "*"
+# on:
+#   push:
+#     tags:
+#       - "*"
 
-jobs:
-  build:
-    name: Build - Prod
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-      - name: Install dependencies
-        run: npm ci
-      - name: Build app
-        run: npm run build --if-present
-        env:
-          REACT_APP_FIREBASE_API_KEY: ${{ secrets.PROD_REACT_APP_FIREBASE_API_KEY }}
-          REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ secrets.PROD_REACT_APP_FIREBASE_AUTH_DOMAIN }}
-          REACT_APP_FIREBASE_DATABASE_URL: ${{ secrets.PROD_REACT_APP_FIREBASE_DATABASE_URL }}
-          REACT_APP_FIREBASE_PROJECT_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_PROJECT_ID }}
-          REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ secrets.PROD_REACT_APP_FIREBASE_STORAGE_BUCKET }}
-          REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
-          REACT_APP_FIREBASE_APP_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_APP_ID }}
-      - name: Upload build artifact
-        uses: actions/upload-artifact@master
-        with:
-          name: build
-          path: build
+# jobs:
+#   build:
+#     name: Build - Prod
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Setup NodeJS
+#         uses: actions/setup-node@v1
+#         with:
+#           node-version: 14.x
+#       - name: Install dependencies
+#         run: npm ci
+#       - name: Build app
+#         run: npm run build --if-present
+#         env:
+#           REACT_APP_FIREBASE_API_KEY: ${{ secrets.PROD_REACT_APP_FIREBASE_API_KEY }}
+#           REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ secrets.PROD_REACT_APP_FIREBASE_AUTH_DOMAIN }}
+#           REACT_APP_FIREBASE_DATABASE_URL: ${{ secrets.PROD_REACT_APP_FIREBASE_DATABASE_URL }}
+#           REACT_APP_FIREBASE_PROJECT_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_PROJECT_ID }}
+#           REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ secrets.PROD_REACT_APP_FIREBASE_STORAGE_BUCKET }}
+#           REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
+#           REACT_APP_FIREBASE_APP_ID: ${{ secrets.PROD_REACT_APP_FIREBASE_APP_ID }}
+#       - name: Upload build artifact
+#         uses: actions/upload-artifact@master
+#         with:
+#           name: build
+#           path: build
 
-  deploy:
-    name: Deploy
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Download build artifact
-        uses: actions/download-artifact@master
-        with:
-          name: build
-          path: build
-      - name: Deploy to Firebase
-        uses: w9jds/firebase-action@master
-        with:
-          args: deploy
-        env:
-          FIREBASE_TOKEN: ${{ secrets.PROD_FIREBASE_TOKEN }}
-          PROJECT_ID: kurry-prod
+#   deploy:
+#     name: Deploy
+#     needs: build
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Download build artifact
+#         uses: actions/download-artifact@master
+#         with:
+#           name: build
+#           path: build
+#       - name: Deploy to Firebase
+#         uses: w9jds/firebase-action@master
+#         with:
+#           args: deploy
+#         env:
+#           FIREBASE_TOKEN: ${{ secrets.PROD_FIREBASE_TOKEN }}
+#           PROJECT_ID: kurry-prod
