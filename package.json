@@ -22,7 +22,7 @@
     "immer": "~6.0.3",
     "material-ui-chip-input": "~1.1.0",
     "material-ui-formik-components": "~0.6.1",
-    "node-sass": "~4.14",
+    "node-sass": "~7.0",
     "react": "~16.13.1",
     "react-dom": "~16.13.1",
     "react-dropzone": "~10.1.10",
